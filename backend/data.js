@@ -1,6 +1,7 @@
 const data = {
   products: [
     {
+      _id: '1',
       name: 'Goopi jacket',
       slug: 'goopi-jacket',
       category: 'Shirts',
@@ -13,6 +14,7 @@ const data = {
       description: 'high quality shirt',
     },
     {
+      _id: '2',
       name: 'Goopi jacket2',
       slug: 'goopi-jacket2',
       category: 'Shirts',
@@ -25,6 +27,7 @@ const data = {
       description: 'high quality shirt',
     },
     {
+      _id: '3',
       name: 'Goopi shirts',
       slug: 'goopi-shirts',
       category: 'Shirts',
