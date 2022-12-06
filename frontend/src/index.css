@@ -16,7 +16,8 @@ main {
 }
 
 /* class for button */
-.btn-primary {
+.btn-primary,
+.btn-outline-primary {
   background-color: #f0c040;
   color: #404040;
 }
@@ -88,4 +89,8 @@ main {
 }
 .active-nav {
   left: 0;
+}
+
+.text-bold {
+  font-weight: bold;
 }

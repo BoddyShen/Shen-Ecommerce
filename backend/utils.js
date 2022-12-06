@@ -32,3 +32,12 @@ export const isAuth = (req, res, next) => {
     res.status(401).send({ message: 'No Token' });
   }
 };
+
+//因為isAdmin前面會先isAuth，所以不用verify
+export const isAdmin = (req, res, next) => {
+  if (req.user && req.user.isAdmin) {
+    next();
+  } else {
+    res.status(401).send({ message: 'Invalid Admin Token' });
+  }
+};
