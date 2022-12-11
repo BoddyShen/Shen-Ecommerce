@@ -13,7 +13,7 @@ export default function SigninScreen() {
   //useLocation可以獲取當前路由的資訊(loaction)
   //search:：當前url 搜尋的表達形式(問號 ? 之後的部分)
   //從這裡過來navigate('/signin?redirect=/shipping');
-  //getr redirect:/shipping
+  //get redirect:/shipping
   const navigate = useNavigate();
   const { search } = useLocation();
   const redirectInUrl = new URLSearchParams(search).get('redirect');

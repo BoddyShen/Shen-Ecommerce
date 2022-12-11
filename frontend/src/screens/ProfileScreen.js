@@ -6,6 +6,7 @@ import { Store } from '../Store';
 import { toast } from 'react-toastify';
 import { getError } from '../utils';
 import axios from 'axios';
+import LoadingBox from '../components/LoadingBox';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -24,20 +25,27 @@ const reducer = (state, action) => {
 export default function ProfileScreen() {
   const { state, dispatch: ctxDispatch } = useContext(Store);
   const { userInfo } = state;
+
   const [name, setName] = useState(userInfo.name);
   const [email, setEmail] = useState(userInfo.email);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const [{ loadingUpdate }, dispatch] = useReducer(reducer, {
-    loadingUpdate: false,
-  });
+  const [{ loadingUpdate }, dispatch] = useReducer(reducer, {});
 
   const submitHandler = async (e) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      toast.error("Password doesn't match Confirm Password");
+      return;
+    }
+    dispatch({
+      type: 'UPDATE_REQUEST',
+    });
+
     try {
       const { data } = await axios.put(
-        '/api/users/profile',
+        `/api/users/profile`,
         {
           name,
           email,
@@ -55,7 +63,7 @@ export default function ProfileScreen() {
       toast.success('User updated successfully');
     } catch (err) {
       dispatch({
-        type: 'FETCH_FAIL',
+        type: 'UPDATE_FAIL',
       });
       toast.error(getError(err));
     }
@@ -67,6 +75,7 @@ export default function ProfileScreen() {
         <title>User Profile</title>
       </Helmet>
       <h1 className="my-3">User Profile</h1>
+
       <form onSubmit={submitHandler}>
         <Form.Group className="mb-3" controlId="name">
           <Form.Label>Name</Form.Label>
@@ -76,7 +85,7 @@ export default function ProfileScreen() {
             required
           />
         </Form.Group>
-        <Form.Group className="mb-3" controlId="name">
+        <Form.Group className="mb-3" controlId="email">
           <Form.Label>Email</Form.Label>
           <Form.Control
             type="email"
@@ -92,15 +101,19 @@ export default function ProfileScreen() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </Form.Group>
-        <Form.Group className="mb-3" controlId="password">
+        <Form.Group className="mb-3" controlId="comfirmPassword">
           <Form.Label>Confirm Password</Form.Label>
           <Form.Control
             type="password"
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
         </Form.Group>
+
         <div className="mb-3">
-          <Button type="submit">Update</Button>
+          <Button disabled={loadingUpdate} type="submit">
+            Update
+          </Button>
+          {loadingUpdate && <LoadingBox></LoadingBox>}
         </div>
       </form>
     </div>

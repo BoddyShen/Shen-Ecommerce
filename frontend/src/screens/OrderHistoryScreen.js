@@ -34,11 +34,10 @@ export default function OrderHistoryScreen() {
     const fetchData = async () => {
       dispatch({ type: 'FETCH_REQUEST' });
       try {
-        const { data } = await axios.get(
-          `/api/orders/mine`,
+        const { data } = await axios.get(`/api/orders/mine`, {
+          headers: { Authorization: `Bearer ${userInfo.token}` },
+        });
 
-          { headers: { Authorization: `Bearer ${userInfo.token}` } }
-        );
         dispatch({ type: 'FETCH_SUCCESS', payload: data });
       } catch (error) {
         dispatch({
@@ -65,6 +64,8 @@ export default function OrderHistoryScreen() {
           <thead>
             <tr>
               <th>ID</th>
+              <th>BUYER</th>
+              <th>SELLER</th>
               <th>DATE</th>
               <th>TOTAL</th>
               <th>PAID</th>
@@ -75,7 +76,9 @@ export default function OrderHistoryScreen() {
           <tbody>
             {orders.map((order) => (
               <tr key={order._id}>
-                <td>{order._id}</td>
+                <td>{order._id.substring(0, 10)}...</td>
+                <td>{order.buyer ? order.buyer.name : 'DELETED USER'}</td>
+                <td>{order.seller ? order.seller.name : 'DELETED USER'}</td>
                 <td>{order.createdAt.substring(0, 10)}</td>
                 <td>{order.totalPrice.toFixed(2)}</td>
                 <td>{order.isPaid ? order.paidAt.substring(0, 10) : 'No'}</td>

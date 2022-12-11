@@ -17,6 +17,11 @@ const productSchema = new mongoose.Schema(
     slug: { type: String, requried: true, unique: true },
     image: { type: String, required: true },
     brand: { type: String, required: true },
+    sellerID: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
     category: { type: String, required: true },
     description: { type: String, required: true },
     price: { type: Number, required: true },

@@ -1,41 +1,51 @@
 import express from 'express';
 import Product from '../models/productModel.js';
 import expressAsyncHandler from 'express-async-handler';
-import { isAuth, isAdmin } from '../utils.js';
+import { isAuth, isAdmin, isAdminOrSeller } from '../utils.js';
+import User from '../models/userModel.js';
 
 const productRouter = express.Router();
 
-productRouter.get('/', async (req, res) => {
-  const products = await Product.find();
-  res.send(products);
-});
+//render all products on HomeScreen
+productRouter.get(
+  '/',
+  expressAsyncHandler(async (req, res) => {
+    const products = await Product.find().populate('sellerID', 'name');
+    res.send(products);
+  })
+);
 
+//create products
 productRouter.post(
   '/',
   isAuth,
-  isAdmin,
+  isAdminOrSeller,
   expressAsyncHandler(async (req, res) => {
     const newProduct = new Product({
       name: 'sample name ' + Date.now(),
       slug: 'sample-name-' + Date.now(),
-      image: '/images/p1.jpg',
-      price: 0,
-      category: 'sample category',
+      image: 'sample',
       brand: 'sample brand',
+      sellerID: req.user._id,
+      category: 'sample category',
+      description: 'sample description',
+      price: 0,
       countInStock: 0,
       rating: 0,
       numReviews: 0,
-      description: 'sample description',
     });
+
     const product = await newProduct.save();
+
     res.send({ message: 'Product Created', product });
   })
 );
 
+//Edit product
 productRouter.put(
   '/:id',
   isAuth,
-  isAdmin,
+  isAdminOrSeller,
   expressAsyncHandler(async (req, res) => {
     const productId = req.params.id;
     const product = await Product.findById(productId);
@@ -48,6 +58,7 @@ productRouter.put(
       product.brand = req.body.brand;
       product.countInStock = req.body.countInStock;
       product.description = req.body.description;
+
       await product.save();
       res.send({ message: 'Product Updated' });
     } else {
@@ -59,7 +70,7 @@ productRouter.put(
 productRouter.delete(
   '/:id',
   isAuth,
-  isAdmin,
+  isAdminOrSeller,
   expressAsyncHandler(async (req, res) => {
     const product = await Product.findById(req.params.id);
     if (product) {
@@ -108,20 +119,26 @@ productRouter.post(
 );
 
 const PAGE_SIZE = 3;
-
+//product list
 productRouter.get(
   '/admin',
   isAuth,
-  isAdmin,
+  isAdminOrSeller,
   expressAsyncHandler(async (req, res) => {
     const { query } = req;
     const page = query.page || 1;
     const pageSize = query.pageSize || PAGE_SIZE;
+    let sellerMode = query.seller;
+    let filter = {};
 
-    const products = await Product.find()
+    sellerMode === 'true'
+      ? (filter = { sellerID: req.user._id })
+      : (filter = {});
+
+    const products = await Product.find(filter)
       .skip(pageSize * (page - 1))
       .limit(pageSize);
-    const countProducts = await Product.countDocuments();
+    const countProducts = await Product.countDocuments(filter);
     res.send({
       products,
       countProducts,
@@ -190,6 +207,7 @@ productRouter.get(
       ...priceFilter,
       ...ratingFilter,
     })
+      .populate('sellerID', 'name')
       .sort(sortOrder)
       .skip(pageSize * (page - 1))
       .limit(pageSize);
@@ -217,10 +235,26 @@ productRouter.get(
   })
 );
 
+//render a product on ProductScreen
 productRouter.get('/slug/:slug', async (req, res) => {
   //find裡是一個callback，並return array中第一個為True的值
   //filter則是return 所有符合的
-  const product = await Product.findOne({ slug: req.params.slug });
+  const product = await Product.findOne({ slug: req.params.slug }).populate(
+    'sellerID',
+    'name'
+  );
+  if (product) {
+    res.send(product);
+  } else {
+    res.status(404).send({ message: 'Product Not Found' });
+  }
+});
+//add cart
+productRouter.get('/:id', async (req, res) => {
+  const product = await Product.findById(req.params.id).populate(
+    'sellerID',
+    'name'
+  );
   if (product) {
     res.send(product);
   } else {
@@ -228,13 +262,22 @@ productRouter.get('/slug/:slug', async (req, res) => {
   }
 });
 
-productRouter.get('/:id', async (req, res) => {
-  const product = await Product.findById(req.params.id);
-  if (product) {
-    res.send(product);
-  } else {
-    res.status(404).send({ message: 'Product Not Found' });
-  }
-});
+productRouter.get(
+  '/seller/profile/:id',
+  expressAsyncHandler(async (req, res) => {
+    const sellerID = req.params.id;
+
+    const products = await Product.find({ sellerID }).populate(
+      'sellerID',
+      'name'
+    );
+    const seller = await User.findById(sellerID);
+
+    res.send({
+      products,
+      seller,
+    });
+  })
+);
 
 export default productRouter;

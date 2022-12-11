@@ -6,7 +6,7 @@ import LoadingBox from '../components/LoadingBox';
 import MessageBox from '../components/MessageBox';
 import Row from 'react-bootstrap/esm/Row';
 import Col from 'react-bootstrap/esm/Col';
-import Button from 'react-bootstrap/esm/Button';
+import Button from 'react-bootstrap/Button';
 import { toast } from 'react-toastify';
 import { getError } from '../utils';
 
@@ -77,13 +77,18 @@ export default function ProductListScreen() {
 
   const { state } = useContext(Store);
   const { userInfo } = state;
+  const sellerMode =
+    window.location.pathname.substring(1, 7) === 'seller' ? true : false;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await axios.get(`/api/products/admin?page=${page} `, {
-          headers: { Authorization: `Bearer ${userInfo.token}` },
-        });
+        const { data } = await axios.get(
+          `/api/products/admin?seller=${sellerMode}&page=${page} `,
+          {
+            headers: { Authorization: `Bearer ${userInfo.token}` },
+          }
+        );
 
         dispatch({ type: 'FETCH_SUCCESS', payload: data });
       } catch (err) {}
@@ -93,7 +98,7 @@ export default function ProductListScreen() {
     } else {
       fetchData();
     }
-  }, [page, userInfo, successDelete]);
+  }, [page, userInfo, successDelete, sellerMode]);
 
   const createHandler = async () => {
     if (window.confirm('Are you sure to create?')) {
@@ -103,12 +108,20 @@ export default function ProductListScreen() {
           '/api/products',
           {},
           {
-            headers: { Authorization: `Bearer ${userInfo.token}` },
+            headers: {
+              Authorization: `Bearer ${userInfo.token}`,
+              seller: userInfo._id,
+            },
           }
         );
+
         toast.success('product created successfully');
         dispatch({ type: 'CREATE_SUCCESS' });
-        navigate(`/admin/product/${data.product._id}`);
+        if (sellerMode) {
+          navigate(`/seller/product/${data.product._id}`);
+        } else {
+          navigate(`/admin/product/${data.product._id}`);
+        }
       } catch (err) {
         toast.error(getError(error));
         dispatch({
@@ -122,8 +135,12 @@ export default function ProductListScreen() {
     if (window.confirm('Are you sure to delete?')) {
       try {
         await axios.delete(`/api/products/${product._id}`, {
-          headers: { Authorization: `Bearer ${userInfo.token}` },
+          headers: {
+            Authorization: `Bearer ${userInfo.token}`,
+            seller: userInfo._id,
+          },
         });
+
         toast.success('product deleted successfully');
         dispatch({ type: 'DELETE_SUCCESS' });
       } catch (err) {
@@ -162,22 +179,30 @@ export default function ProductListScreen() {
           <table className="table">
             <thead>
               <tr>
-                <th>ID</th>
+                <th>IMAGE</th>
                 <th>NAME</th>
                 <th>PRICE</th>
                 <th>CATEGORY</th>
                 <th>BRAND</th>
+
                 <th>ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               {products.map((product) => (
                 <tr key={product._id}>
-                  <td>{product._id}</td>
+                  <td>
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="img-fluid rounded img-thumbnail"
+                    ></img>{' '}
+                  </td>
                   <td>{product.name}</td>
                   <td>{product.price}</td>
                   <td>{product.category}</td>
                   <td>{product.brand}</td>
+
                   <td>
                     <Button
                       type="button"
@@ -200,15 +225,25 @@ export default function ProductListScreen() {
             </tbody>
           </table>
           <div>
-            {[...Array(pages).keys()].map((x) => (
-              <Link
-                className={x + 1 === Number(page) ? 'btn text-bold' : 'btn'}
-                key={x + 1}
-                to={`/admin/products?page=${x + 1}`}
-              >
-                {x + 1}
-              </Link>
-            ))}
+            {[...Array(pages).keys()].map((x) =>
+              sellerMode ? (
+                <Link
+                  className={x + 1 === Number(page) ? 'btn text-bold' : 'btn'}
+                  key={x + 1}
+                  to={`/seller/products?seller=${sellerMode}&page=${x + 1}`}
+                >
+                  {x + 1}
+                </Link>
+              ) : (
+                <Link
+                  className={x + 1 === Number(page) ? 'btn text-bold' : 'btn'}
+                  key={x + 1}
+                  to={`/admin/products?seller=${sellerMode}&page=${x + 1}`}
+                >
+                  {x + 1}
+                </Link>
+              )
+            )}
           </div>
         </>
       )}

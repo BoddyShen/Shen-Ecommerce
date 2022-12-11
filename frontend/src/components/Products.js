@@ -5,9 +5,11 @@ import Rating from './Rating';
 import axios from 'axios';
 import { useContext } from 'react';
 import { Store } from '../Store';
-//放在HomeScreen裡的Products
+import { toast } from 'react-toastify';
+//Products in HomeScreen
 //props是HomeScreen裡<Product product={product}></Product>給的props，
 //如果裡面有文字要用props.children
+
 function Product(props) {
   const { product } = props;
   //Store 傳state, dispatch出來
@@ -24,7 +26,7 @@ function Product(props) {
     const quantity = existItem ? existItem.quantity + 1 : 1;
     const { data } = await axios.get(`/api/products/${item._id}`);
     if (data.countInStock < quantity) {
-      window.alert('Sorry. Product is out of stock');
+      toast.error('Sorry. Product is out of stock');
       return;
     }
     //quantity: quantity -> quantity
@@ -32,19 +34,29 @@ function Product(props) {
       type: 'CART_ADD_ITEM',
       payload: { ...item, quantity },
     });
+    toast.success('Add to cart!');
   };
 
   return (
     <Card>
       <Link to={`/product/${product.slug}`}>
-        <img src={product.image} className="card-img-top" alt={product.name} />
+        <img
+          src={product.image}
+          className="card-img-top card-height "
+          alt={product.name}
+        />
       </Link>
       <Card.Body>
-        <Link to={`/product/${product.slug}`}>
+        <Link to={`/product/${product.slug}`} className="seller">
           <Card.Title>{product.name}</Card.Title>
         </Link>
         <Rating rating={product.rating} numReviews={product.numReviews} />
         <Card.Text>${product.price}</Card.Text>
+        <Link to={`/seller/profile/${product.sellerID._id}`} className="seller">
+          <Card.Text className="seller">
+            Seller: {product.sellerID.name}
+          </Card.Text>
+        </Link>
         {product.countInStock === 0 ? (
           <Button variant="light" disabled>
             Out of stock

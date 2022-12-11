@@ -59,6 +59,8 @@ function ProductScreen() {
       dispatch({ type: 'FETCH_REQUEST' });
       try {
         const result = await axios.get(`/api/products/slug/${slug}`);
+
+        //product = result.data
         dispatch({ type: 'FETCH_SUCCESS', payload: result.data });
       } catch (err) {
         dispatch({ type: 'FETCH_FAIL', payload: getError(err) });
@@ -71,8 +73,11 @@ function ProductScreen() {
   const { cart, userInfo } = state;
   const addToCartHandler = async () => {
     const existItem = cart.cartItems.find((x) => x._id === product._id);
+    // console.log(product);
+    // console.log(existItem);
     const quantity = existItem ? existItem.quantity + 1 : 1;
     const { data } = await axios.get(`/api/products/${product._id}`);
+
     if (data.countInStock < quantity) {
       window.alert('Sorry. Product is out of stock');
       return;
@@ -84,6 +89,7 @@ function ProductScreen() {
     navigate('/cart');
   };
 
+  //submit rating and review
   const submitHandler = async (e) => {
     e.preventDefault();
     if (!comment || !rating) {
@@ -145,11 +151,19 @@ function ProductScreen() {
                 numReviews={product.numReviews}
               ></Rating>
             </ListGroup.Item>
-            <ListGroup.Item>Pirce : ${product.price}</ListGroup.Item>
+            <ListGroup.Item>Price : ${product.price}</ListGroup.Item>
             <ListGroup.Item>
               Description:
               <p>{product.description}</p>
             </ListGroup.Item>
+            <Link
+              to={`/seller/profile/${product.sellerID._id}`}
+              className="seller"
+            >
+              <ListGroup.Item className="seller">
+                Seller: {product.sellerID.name}
+              </ListGroup.Item>
+            </Link>
           </ListGroup>
         </Col>
         <Col md={3}>

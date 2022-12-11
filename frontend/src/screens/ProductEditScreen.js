@@ -16,7 +16,7 @@ const reducer = (state, action) => {
     case 'FETCH_REQUEST':
       return { ...state, loading: true };
     case 'FETCH_SUCCESS':
-      return { ...state, loading: false };
+      return { ...state, loading: false, sellerID: action.payload };
     case 'FETCH_FAIL':
       return { ...state, loading: false, error: action.payload };
     case 'UPDATE_REQUEST':
@@ -75,6 +75,7 @@ export default function ProductEditScreen() {
         setCountInStock(data.countInStock);
         setBrand(data.brand);
         setDescription(data.description);
+
         dispatch({ type: 'FETCH_SUCCESS' });
       } catch (err) {
         dispatch({
@@ -90,6 +91,7 @@ export default function ProductEditScreen() {
     e.preventDefault();
     try {
       dispatch({ type: 'UPDATE_REQUEST' });
+
       await axios.put(
         `/api/products/${productId}`,
         {
@@ -104,14 +106,21 @@ export default function ProductEditScreen() {
           description,
         },
         {
-          headers: { Authorization: `Bearer ${userInfo.token}` },
+          headers: {
+            Authorization: `Bearer ${userInfo.token}`,
+            seller: userInfo._id,
+          },
         }
       );
       dispatch({
         type: 'UPDATE_SUCCESS',
       });
       toast.success('Product updated successfully');
-      navigate('/admin/products');
+      if (window.location.pathname.substring(1, 7) === 'seller') {
+        navigate('/seller/products');
+      } else {
+        navigate('/admin/products');
+      }
     } catch (err) {
       toast.error(getError(err));
       dispatch({ type: 'UPDATE_FAIL' });
@@ -122,14 +131,22 @@ export default function ProductEditScreen() {
     const file = e.target.files[0];
     const bodyFormData = new FormData();
     bodyFormData.append('file', file);
+
     try {
       dispatch({ type: 'UPLOAD_REQUEST' });
-      const { data } = await axios.post('/api/upload', bodyFormData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          authorization: `Bearer ${userInfo.token}`,
-        },
-      });
+
+      const { data } = await axios.post(
+        '/api/upload',
+        bodyFormData,
+
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            authorization: `Bearer ${userInfo.token}`,
+            seller: userInfo._id,
+          },
+        }
+      );
       dispatch({ type: 'UPLOAD_SUCCESS' });
 
       toast.success('Image uploaded successfully');

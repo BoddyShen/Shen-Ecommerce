@@ -9,6 +9,7 @@ import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 export default function CartScreen() {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ export default function CartScreen() {
   const updateCartHandler = async (item, quantity) => {
     const { data } = await axios.get(`/api/products/${item._id}`);
     if (data.countInStock < quantity) {
-      window.alert('Sorry. Product is out of stock');
+      toast.error('Sorry. Product is out of stock');
       return;
     }
     ctxDispatch({
@@ -34,7 +35,15 @@ export default function CartScreen() {
   };
 
   const checkoutHandler = () => {
-    navigate('/signin?redirect=/shipping');
+    const sellerID = cartItems[0].sellerID._id;
+    for (let i = 0; i < cartItems.length; i++) {
+      if (cartItems[i].sellerID._id !== sellerID) {
+        toast.error('An Order should presented by one seller each time.');
+        return;
+      }
+    }
+
+    navigate('/signin?redirect=/shipping'); //到signin 可以用URL判斷要不要redirect
   };
 
   return (
@@ -54,13 +63,24 @@ export default function CartScreen() {
               {cartItems.map((item) => (
                 <ListGroup.Item key={item._id}>
                   <Row className="align-items-center">
-                    <Col md={4}>
+                    <Col md={5}>
                       <img
                         src={item.image}
                         alt={item.name}
                         className="img-fluid rounded img-thumbnail"
-                      ></img>{' '}
-                      <Link to={`/product/${item.slug}`}>{item.name}</Link>
+                      ></img>
+                      &nbsp;&nbsp; &nbsp;
+                      <Link to={`/product/${item.slug}`} className="seller">
+                        {item.name}
+                      </Link>
+                      <Link
+                        to={`/seller/profile/${item.sellerID._id}`}
+                        className="seller"
+                      >
+                        <Card.Text className="seller">
+                          Seller: {item.sellerID.name}
+                        </Card.Text>
+                      </Link>
                     </Col>
                     <Col md={3}>
                       <Button
@@ -83,7 +103,7 @@ export default function CartScreen() {
                         <i className="fas fa-plus-circle"></i>
                       </Button>
                     </Col>
-                    <Col md={3}>${item.price}</Col>
+                    <Col md={2}>${item.price}</Col>
                     <Col md={2}>
                       <Button
                         onClick={() => removeItemHandler(item)}

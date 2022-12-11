@@ -3,16 +3,24 @@ import expressAsyncHandler from 'express-async-handler';
 import Order from '../models/orderModel.js';
 import User from '../models/userModel.js';
 import Product from '../models/productModel.js';
-import { isAuth, isAdmin } from '../utils.js';
+import { isAuth, isAdmin, isAdminOrSeller } from '../utils.js';
 
 const orderRouter = express.Router();
 
 orderRouter.get(
   '/',
   isAuth,
-  isAdmin,
+  isAdminOrSeller,
   expressAsyncHandler(async (req, res) => {
-    const orders = await Order.find().populate('user', 'name');
+    const { query } = req;
+    let sellerMode = query.seller;
+    let filter = {};
+    sellerMode === 'true' ? (filter = { seller: req.user._id }) : (filter = {});
+
+    const orders = await Order.find(filter)
+      .populate('buyer', 'name')
+      .populate('seller', 'name');
+
     res.send(orders);
   })
 );
@@ -29,7 +37,9 @@ orderRouter.post(
       shippingPrice: req.body.shippingPrice,
       taxPrice: req.body.taxPrice,
       totalPrice: req.body.totalPrice,
-      user: req.user._id,
+      buyer: req.user._id,
+      seller: req.body.seller,
+      sellerID: req.body.seller,
     });
     const order = await newOrder.save();
     res.status(201).send({ message: 'New Order Created', order });
@@ -80,11 +90,15 @@ orderRouter.get(
   })
 );
 
+//orderHistory
 orderRouter.get(
   '/mine',
   isAuth,
   expressAsyncHandler(async (req, res) => {
-    const orders = await Order.find({ user: req.user._id });
+    const orders = await Order.find({ buyer: req.user._id })
+      .populate('buyer', 'name')
+      .populate('seller', 'name');
+
     res.send(orders);
   })
 );
@@ -104,9 +118,10 @@ orderRouter.get(
 orderRouter.put(
   '/:id/deliver',
   isAuth,
+  isAdminOrSeller,
   expressAsyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
-    if (order) {
+    if (order && (order.sellerID === req.user._id || req.user.isAdmin)) {
       order.isDelivered = true;
       order.deliveredAt = Date.now();
       await order.save();
@@ -142,10 +157,10 @@ orderRouter.put(
 orderRouter.delete(
   '/:id',
   isAuth,
-  isAdmin,
+  isAdminOrSeller,
   expressAsyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
-    if (order) {
+    if (order && (order.sellerID === req.user._id || req.user.isAdmin)) {
       await order.remove();
       res.send({ message: 'Order Deleted' });
     } else {

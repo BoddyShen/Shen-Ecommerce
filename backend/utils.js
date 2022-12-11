@@ -15,9 +15,9 @@ export const generateToken = (user) => {
   );
 };
 
-//during make an order
 export const isAuth = (req, res, next) => {
   const authorization = req.headers.authorization;
+
   if (authorization) {
     const token = authorization.slice(7, authorization.length); //Bearer xxxxx
     jwt.verify(token, process.env.JWT_SECRET, (err, decode) => {
@@ -25,6 +25,7 @@ export const isAuth = (req, res, next) => {
         res.status(401).send({ message: 'Invalid Token' });
       } else {
         req.user = decode;
+
         next();
       }
     });
@@ -36,6 +37,18 @@ export const isAuth = (req, res, next) => {
 //因為isAdmin前面會先isAuth，所以不用verify
 export const isAdmin = (req, res, next) => {
   if (req.user && req.user.isAdmin) {
+    next();
+  } else {
+    res.status(401).send({ message: 'Invalid Admin Token' });
+  }
+};
+
+export const isAdminOrSeller = (req, res, next) => {
+  if (
+    (req.user && req.user.isAdmin) ||
+    (req.query && req.query.seller === 'true') ||
+    (req.user && req.headers.seller && req.user._id === req.headers.seller)
+  ) {
     next();
   } else {
     res.status(401).send({ message: 'Invalid Admin Token' });

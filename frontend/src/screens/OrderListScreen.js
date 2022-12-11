@@ -41,6 +41,8 @@ export default function OrderListScreen() {
   const navigate = useNavigate();
   const { state } = useContext(Store);
   const { userInfo } = state;
+  const sellerMode =
+    window.location.pathname.substring(1, 7) === 'seller' ? true : false;
   const [{ loading, error, orders, loadingDelete, successDelete }, dispatch] =
     useReducer(reducer, {
       loading: true,
@@ -51,8 +53,11 @@ export default function OrderListScreen() {
     const fetchData = async () => {
       try {
         dispatch({ type: 'FETCH_REQUEST' });
-        const { data } = await axios.get(`/api/orders`, {
-          headers: { Authorization: `Bearer ${userInfo.token}` },
+        const { data } = await axios.get(`/api/orders?seller=${sellerMode} `, {
+          headers: {
+            Authorization: `Bearer ${userInfo.token}`,
+            seller: userInfo._id,
+          },
         });
         dispatch({ type: 'FETCH_SUCCESS', payload: data });
       } catch (err) {
@@ -67,14 +72,17 @@ export default function OrderListScreen() {
     } else {
       fetchData();
     }
-  }, [userInfo, successDelete]);
+  }, [userInfo, successDelete, sellerMode]);
 
   const deleteHandler = async (order) => {
     if (window.confirm('Are you sure to delete?')) {
       try {
         dispatch({ type: 'DELETE_REQUEST' });
         await axios.delete(`/api/orders/${order._id}`, {
-          headers: { Authorization: `Bearer ${userInfo.token}` },
+          headers: {
+            Authorization: `Bearer ${userInfo.token}`,
+            seller: userInfo._id,
+          },
         });
         toast.success('order deleted successfully');
         dispatch({ type: 'DELETE_SUCCESS' });
@@ -103,23 +111,26 @@ export default function OrderListScreen() {
           <thead>
             <tr>
               <th>ID</th>
-              <th>USER</th>
+              <th>BUYER</th>
+              <th>SELLER</th>
               <th>DATE</th>
               <th>TOTAL</th>
               <th>PAID</th>
               <th>DELIVERED</th>
               <th>ACTIONS</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
             {orders.map((order) => (
               <tr key={order._id}>
-                <td>{order._id}</td>
-                <td>{order.user ? order.user.name : 'DELETED USER'}</td>
+                <td>{order._id.substring(0, 10)}...</td>
+                <td>{order.buyer ? order.buyer.name : 'DELETED USER'}</td>
+                <td>{order.seller ? order.seller.name : 'DELETED USER'}</td>
                 <td>{order.createdAt.substring(0, 10)}</td>
                 <td>{order.totalPrice.toFixed(2)}</td>
                 <td>{order.isPaid ? order.paidAt.substring(0, 10) : 'No'}</td>
-                <td>{order.isPaid ? order.paidAt.substring(0, 10) : 'No'}</td>
+
                 <td>
                   {order.isDelivered
                     ? order.deliveredAt.substring(0, 10)

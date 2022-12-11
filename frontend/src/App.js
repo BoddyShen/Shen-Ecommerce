@@ -17,7 +17,8 @@ import ShippingAddressScreen from './screens/ShoppingAddressScreen';
 import SignupScreen from './screens/SignupScreen';
 import PaymentMethodScreen from './screens/PaymentMethodScreen';
 import PlaceOrderScreen from './screens/PlaceOrderScreen';
-import OrderScreen from './screens/OrderScreen';
+// import OrderScreen from './screens/OrderScreen';
+import OrderScreen1 from './screens/OrderScreen1';
 import OrderHistoryScreen from './screens/OrderHistoryScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import Button from 'react-bootstrap/Button';
@@ -33,6 +34,8 @@ import ProductEditScreen from './screens/ProductEditScreen';
 import OrderListScreen from './screens/OrderListScreen';
 import UserListScreen from './screens/UserListScreen';
 import UserEditScreen from './screens/UserEditScreen';
+import SellerScreen from './screens/SellerScreen';
+import SellerEditScreen from './screens/SellerEditScreen';
 
 function App() {
   const { state, dispatch: ctxDispatch } = useContext(Store); //get state of cart from context
@@ -107,20 +110,30 @@ function App() {
                       <LinkContainer to="/orderhistory">
                         <NavDropdown.Item>Order History</NavDropdown.Item>
                       </LinkContainer>
-                      <NavDropdown.Divider />
-                      <Link
-                        className="dropdown-item"
-                        to="#signout"
-                        onClick={signoutHandler}
-                      >
-                        Sign Out
-                      </Link>
                     </NavDropdown>
                   ) : (
                     <Link className="nav-link" to="/signin">
                       Sign In
                     </Link>
                   )}
+
+                  {/* seller */}
+                  {userInfo && (
+                    <NavDropdown title="Seller" id="seller-nav-dropdown">
+                      <LinkContainer
+                        to={'/seller/profile/:id'.replace(':id', userInfo._id)}
+                      >
+                        <NavDropdown.Item>Profile</NavDropdown.Item>
+                      </LinkContainer>
+                      <LinkContainer to="/seller/products">
+                        <NavDropdown.Item>Products</NavDropdown.Item>
+                      </LinkContainer>
+                      <LinkContainer to="/seller/orders">
+                        <NavDropdown.Item>Orders</NavDropdown.Item>
+                      </LinkContainer>
+                    </NavDropdown>
+                  )}
+
                   {userInfo && userInfo.isAdmin && (
                     <NavDropdown title="Admin" id="admin-nav-dropdown">
                       <LinkContainer to="/admin/dashboard">
@@ -136,6 +149,16 @@ function App() {
                         <NavDropdown.Item>Users</NavDropdown.Item>
                       </LinkContainer>
                     </NavDropdown>
+                  )}
+
+                  {userInfo && (
+                    <Link
+                      to="#signout"
+                      className="nav-link"
+                      onClick={signoutHandler}
+                    >
+                      Sign Out
+                    </Link>
                   )}
                 </Nav>
               </Navbar.Collapse>
@@ -193,7 +216,7 @@ function App() {
                 path="/order/:id"
                 element={
                   <ProtectedRoute>
-                    <OrderScreen />
+                    <OrderScreen1 />
                   </ProtectedRoute>
                 }
               ></Route>
@@ -247,9 +270,9 @@ function App() {
               <Route
                 path="/admin/product/:id"
                 element={
-                  <AdminRoute>
+                  <ProtectedRoute>
                     <ProductEditScreen />
-                  </AdminRoute>
+                  </ProtectedRoute>
                 }
               ></Route>
 
@@ -262,7 +285,51 @@ function App() {
                 }
               ></Route>
 
+              {/* seller */}
+
+              <Route
+                path="/seller/products"
+                element={
+                  <ProtectedRoute>
+                    <ProductListScreen />
+                  </ProtectedRoute>
+                }
+              ></Route>
+
+              <Route
+                path="/seller/orders"
+                element={
+                  <ProtectedRoute>
+                    <OrderListScreen />
+                  </ProtectedRoute>
+                }
+              ></Route>
+
+              <Route
+                path="/seller/profile/edit/:id"
+                element={
+                  <ProtectedRoute>
+                    <SellerEditScreen />
+                  </ProtectedRoute>
+                }
+              ></Route>
+
+              <Route
+                path="/seller/profile/:id"
+                element={<SellerScreen />}
+              ></Route>
+
+              <Route
+                path="/seller/product/:id"
+                element={
+                  <ProtectedRoute>
+                    <ProductEditScreen />
+                  </ProtectedRoute>
+                }
+              ></Route>
+
               <Route path="/" element={<HomeScreen />} />
+              <Route path="/sellerScreen" element={<SellerScreen />} />
             </Routes>
           </Container>
         </main>

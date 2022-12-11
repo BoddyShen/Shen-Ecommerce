@@ -56,6 +56,7 @@ function Rating(props) {
               : 'far fa-star'
           }
         />
+        {/* caption represent the caption next to stars instend of N reviews, ex. " " */}
       </span>
       {caption ? (
         <span>{caption}</span>

@@ -44,13 +44,22 @@ main {
 .product-info {
   padding: 1rem;
 }
-
 .img-large {
   max-width: 100%;
 }
 
 .img-thumbnail {
   height: 80px;
+  width: 80px;
+  object-fit: cover;
+  object-position: center center;
+}
+
+.img-thumbnail2 {
+  height: 160px;
+  width: 160px;
+  object-fit: cover;
+  object-position: center center;
 }
 
 .small-container {
@@ -80,6 +89,11 @@ main {
   background-color: #100901;
   transition: 0.5s;
 }
+.card-height {
+  height: 200px;
+  object-fit: cover;
+  object-position: center center;
+}
 
 .site-container {
   transition: 0.4s;
@@ -92,5 +106,14 @@ main {
 }
 
 .text-bold {
+  font-weight: bold;
+}
+
+.profile {
+  background-color: rgb(245, 248, 251);
+}
+
+.seller {
+  text-decoration: none;
   font-weight: bold;
 }
