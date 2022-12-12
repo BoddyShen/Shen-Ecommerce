@@ -105,6 +105,16 @@ productRouter.post(
       product.rating =
         product.reviews.reduce((a, c) => c.rating + a, 0) /
         product.reviews.length;
+
+      const seller = await User.findById(product.sellerID);
+      if (seller) {
+        let n = seller.seller.numReviews;
+        seller.seller.rating =
+          (seller.seller.rating * n + Number(req.body.rating)) / (n + 1);
+        seller.seller.numReviews = n + 1;
+      }
+      await seller.save();
+
       const updatedProduct = await product.save();
       res.status(201).send({
         message: 'Review Created',
