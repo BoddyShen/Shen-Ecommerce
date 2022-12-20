@@ -1,7 +1,7 @@
 import express from 'express';
 import Product from '../models/productModel.js';
 import expressAsyncHandler from 'express-async-handler';
-import { isAuth, isAdmin, isAdminOrSeller } from '../utils.js';
+import { isAuth } from '../utils.js';
 import User from '../models/userModel.js';
 
 const productRouter = express.Router();
@@ -19,11 +19,9 @@ productRouter.get(
 productRouter.post(
   '/',
   isAuth,
-  isAdminOrSeller,
   expressAsyncHandler(async (req, res) => {
     const newProduct = new Product({
       name: 'sample name ' + Date.now(),
-      slug: 'sample-name-' + Date.now(),
       image: 'sample',
       brand: 'sample brand',
       sellerID: req.user._id,
@@ -45,13 +43,20 @@ productRouter.post(
 productRouter.put(
   '/:id',
   isAuth,
-  isAdminOrSeller,
   expressAsyncHandler(async (req, res) => {
     const productId = req.params.id;
     const product = await Product.findById(productId);
+
     if (product) {
+      if (
+        !(product.sellerID.toHexString() === req.user._id || req.user.isAdmin)
+      ) {
+        res
+          .status(401)
+          .send({ message: 'You have no right to do this action.' });
+        return;
+      }
       product.name = req.body.name;
-      product.slug = req.body.slug;
       product.price = req.body.price;
       product.image = req.body.image;
       product.category = req.body.category;
@@ -70,10 +75,18 @@ productRouter.put(
 productRouter.delete(
   '/:id',
   isAuth,
-  isAdminOrSeller,
   expressAsyncHandler(async (req, res) => {
     const product = await Product.findById(req.params.id);
+
     if (product) {
+      if (
+        !(product.sellerID.toHexString() === req.user._id || req.user.isAdmin)
+      ) {
+        res
+          .status(401)
+          .send({ message: 'You have no right to do this action.' });
+        return;
+      }
       await product.remove();
       res.send({ message: 'Product Deleted' });
     } else {
@@ -133,7 +146,6 @@ const PAGE_SIZE = 3;
 productRouter.get(
   '/admin',
   isAuth,
-  isAdminOrSeller,
   expressAsyncHandler(async (req, res) => {
     const { query } = req;
     const page = query.page || 1;
@@ -246,19 +258,6 @@ productRouter.get(
 );
 
 //render a product on ProductScreen
-productRouter.get('/slug/:slug', async (req, res) => {
-  //find裡是一個callback，並return array中第一個為True的值
-  //filter則是return 所有符合的
-  const product = await Product.findOne({ slug: req.params.slug }).populate(
-    'sellerID',
-    'name'
-  );
-  if (product) {
-    res.send(product);
-  } else {
-    res.status(404).send({ message: 'Product Not Found' });
-  }
-});
 //add cart
 productRouter.get('/:id', async (req, res) => {
   const product = await Product.findById(req.params.id).populate(

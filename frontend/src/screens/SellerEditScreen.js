@@ -122,7 +122,6 @@ export default function SellerEditScreen() {
           headers: {
             'Content-Type': 'multipart/form-data',
             authorization: `Bearer ${userInfo.token}`,
-            seller: userInfo._id,
           },
         }
       );

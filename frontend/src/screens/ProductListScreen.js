@@ -104,19 +104,21 @@ export default function ProductListScreen() {
     if (window.confirm('Are you sure to create?')) {
       try {
         dispatch({ type: 'CREATE_REQUEST' });
+
         const { data } = await axios.post(
           '/api/products',
           {},
           {
             headers: {
               Authorization: `Bearer ${userInfo.token}`,
-              seller: userInfo._id,
             },
           }
         );
 
         toast.success('product created successfully');
+
         dispatch({ type: 'CREATE_SUCCESS' });
+
         if (sellerMode) {
           navigate(`/seller/product/${data.product._id}`);
         } else {
@@ -137,7 +139,6 @@ export default function ProductListScreen() {
         await axios.delete(`/api/products/${product._id}`, {
           headers: {
             Authorization: `Bearer ${userInfo.token}`,
-            seller: userInfo._id,
           },
         });
 

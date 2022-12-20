@@ -81,7 +81,6 @@ export default function OrderListScreen() {
         await axios.delete(`/api/orders/${order._id}`, {
           headers: {
             Authorization: `Bearer ${userInfo.token}`,
-            seller: userInfo._id,
           },
         });
         toast.success('order deleted successfully');

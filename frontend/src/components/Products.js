@@ -6,10 +6,10 @@ import axios from 'axios';
 import { useContext } from 'react';
 import { Store } from '../Store';
 import { toast } from 'react-toastify';
+
 //Products in HomeScreen
 //props是HomeScreen裡<Product product={product}></Product>給的props，
 //如果裡面有文字要用props.children
-
 function Product(props) {
   const { product } = props;
   //Store 傳state, dispatch出來
@@ -38,8 +38,8 @@ function Product(props) {
   };
 
   return (
-    <Card>
-      <Link to={`/product/${product.slug}`}>
+    <Card className="product-height">
+      <Link to={`/product/${product._id}`}>
         <img
           src={product.image}
           className="card-img-top card-height "
@@ -47,7 +47,7 @@ function Product(props) {
         />
       </Link>
       <Card.Body>
-        <Link to={`/product/${product.slug}`} className="seller">
+        <Link to={`/product/${product._id}`} className="seller">
           <Card.Title>{product.name}</Card.Title>
         </Link>
         <Rating rating={product.rating} numReviews={product.numReviews} />

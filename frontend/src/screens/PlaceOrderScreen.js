@@ -52,6 +52,7 @@ export default function PlaceOrderScreen() {
 
     try {
       dispatch({ type: 'CREATE_REQUEST' });
+      console.log(cart);
 
       const { data } = await Axios.post(
         '/api/orders',
@@ -65,7 +66,6 @@ export default function PlaceOrderScreen() {
           totalPrice: cart.totalPrice,
           buyer: userInfo._id,
           seller: cart.cartItems[0].sellerID,
-          sellerID: cart.cartItems[0].sellerID,
         },
         {
           headers: {
@@ -132,7 +132,7 @@ export default function PlaceOrderScreen() {
                           alt={item.name}
                           className="img-fluid rounded img-thumbnail"
                         ></img>{' '}
-                        <Link to={`/product/${item.slug}`}>{item.name}</Link>
+                        <Link to={`/product/${item._id}`}>{item.name}</Link>
                       </Col>
                       <Col md={3}>
                         <span>{item.quantity}</span>

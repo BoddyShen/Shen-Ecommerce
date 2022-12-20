@@ -54,7 +54,6 @@ export default function ProductEditScreen() {
     });
 
   const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
   const [price, setPrice] = useState('');
   const [image, setImage] = useState('');
   const [category, setCategory] = useState('');
@@ -66,9 +65,9 @@ export default function ProductEditScreen() {
     const fetchData = async () => {
       try {
         dispatch({ type: 'FETCH_REQUEST' });
+
         const { data } = await axios.get(`/api/products/${productId}`);
         setName(data.name);
-        setSlug(data.slug);
         setPrice(data.price);
         setImage(data.image);
         setCategory(data.category);
@@ -97,7 +96,7 @@ export default function ProductEditScreen() {
         {
           _id: productId,
           name,
-          slug,
+
           price,
           image,
           category,
@@ -108,7 +107,6 @@ export default function ProductEditScreen() {
         {
           headers: {
             Authorization: `Bearer ${userInfo.token}`,
-            seller: userInfo._id,
           },
         }
       );
@@ -143,7 +141,6 @@ export default function ProductEditScreen() {
           headers: {
             'Content-Type': 'multipart/form-data',
             authorization: `Bearer ${userInfo.token}`,
-            seller: userInfo._id,
           },
         }
       );
@@ -178,14 +175,7 @@ export default function ProductEditScreen() {
               required
             />
           </Form.Group>
-          <Form.Group className="mb-3" controlId="slug">
-            <Form.Label>Slug</Form.Label>
-            <Form.Control
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              required
-            />
-          </Form.Group>
+
           <Form.Group className="mb-3" controlId="name">
             <Form.Label>Price</Form.Label>
             <Form.Control

@@ -15,6 +15,7 @@ export default function CartScreen() {
   const navigate = useNavigate();
   const { state, dispatch: ctxDispatch } = useContext(Store);
   const {
+    userInfo,
     cart: { cartItems },
   } = state;
 
@@ -38,7 +39,11 @@ export default function CartScreen() {
     const sellerID = cartItems[0].sellerID._id;
     for (let i = 0; i < cartItems.length; i++) {
       if (cartItems[i].sellerID._id !== sellerID) {
-        toast.error('An Order should presented by one seller each time.');
+        toast.error('An Order should provided by one seller each time.');
+        return;
+      }
+      if (sellerID === userInfo._id && !userInfo.isAdmin) {
+        toast.error('Seller can not buy their products.');
         return;
       }
     }
@@ -70,7 +75,7 @@ export default function CartScreen() {
                         className="img-fluid rounded img-thumbnail"
                       ></img>
                       &nbsp;&nbsp; &nbsp;
-                      <Link to={`/product/${item.slug}`} className="seller">
+                      <Link to={`/product/${item._id}`} className="seller">
                         {item.name}
                       </Link>
                       <Link

@@ -65,7 +65,7 @@ export default function SellerScreen() {
       }
     };
     fetchData();
-  }, [sellerId]); //for render at the begining
+  }, [sellerId]);
 
   return (
     <div>
@@ -119,7 +119,7 @@ export default function SellerScreen() {
 
             <Row>
               {products.map((product) => (
-                <Col key={product.slug} sm={6} md={4} lg={3} className="mb-3">
+                <Col key={product.name} sm={6} md={4} lg={3} className="mb-3">
                   <Product product={product}></Product>
                 </Col>
               ))}

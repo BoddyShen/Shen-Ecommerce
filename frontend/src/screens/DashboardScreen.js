@@ -32,13 +32,19 @@ export default function DashboardScreen() {
   });
   const { state } = useContext(Store);
   const { userInfo } = state;
+  const sellerMode =
+    window.location.pathname.substring(1, 7) === 'seller' ? true : false;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await axios.get('/api/orders/summary', {
-          headers: { Authorization: `Bearer ${userInfo.token}` },
-        });
+        const { data } = sellerMode
+          ? await axios.get('/api/orders/seller/summary', {
+              headers: { Authorization: `Bearer ${userInfo.token}` },
+            })
+          : await axios.get('/api/orders/summary', {
+              headers: { Authorization: `Bearer ${userInfo.token}` },
+            });
         dispatch({ type: 'FETCH_SUCCESS', payload: data });
       } catch (err) {
         dispatch({
@@ -48,7 +54,7 @@ export default function DashboardScreen() {
       }
     };
     fetchData();
-  }, [userInfo]);
+  }, [userInfo, sellerMode]);
 
   return (
     <div>
@@ -58,6 +64,9 @@ export default function DashboardScreen() {
       ) : error ? (
         <MessageBox variant="danger">{error}</MessageBox>
       ) : (
+        // sellerMode ? (
+        //   <LoadingBox />
+        // ) :
         <>
           <Row>
             <Col md={4}>
@@ -76,7 +85,7 @@ export default function DashboardScreen() {
               <Card>
                 <Card.Body>
                   <Card.Title>
-                    {summary.orders && summary.users[0]
+                    {summary.orders && summary.orders[0] && summary.users[0]
                       ? summary.orders[0].numOrders
                       : 0}
                   </Card.Title>
@@ -89,7 +98,7 @@ export default function DashboardScreen() {
                 <Card.Body>
                   <Card.Title>
                     $
-                    {summary.orders && summary.users[0]
+                    {summary.orders && summary.orders[0] && summary.users[0]
                       ? summary.orders[0].totalSales.toFixed(2)
                       : 0}
                   </Card.Title>

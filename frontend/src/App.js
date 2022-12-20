@@ -18,7 +18,7 @@ import SignupScreen from './screens/SignupScreen';
 import PaymentMethodScreen from './screens/PaymentMethodScreen';
 import PlaceOrderScreen from './screens/PlaceOrderScreen';
 // import OrderScreen from './screens/OrderScreen';
-import OrderScreen1 from './screens/OrderScreen1';
+import OrderScreen from './screens/OrderScreen';
 import OrderHistoryScreen from './screens/OrderHistoryScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import Button from 'react-bootstrap/Button';
@@ -86,12 +86,12 @@ function App() {
                 <i className="fas fa-bars"></i>
               </Button>
               <LinkContainer to="/">
-                <Navbar.Brand>amazona</Navbar.Brand>
+                <Navbar.Brand>Shen's E-commerce</Navbar.Brand>
               </LinkContainer>
               <Navbar.Toggle aria-controls="basic-navbar-nav" />
               <Navbar.Collapse id="basic-navbar-nav">
                 <SearchBox />
-                <Nav className="me-auto w-100  justify-content-end">
+                <Nav className="me-auto w-150  justify-content-end">
                   <Link to="/cart" className="nav-link">
                     Cart
                     {cart.cartItems.length > 0 && (
@@ -120,6 +120,10 @@ function App() {
                   {/* seller */}
                   {userInfo && (
                     <NavDropdown title="Seller" id="seller-nav-dropdown">
+                      <LinkContainer to="/seller/dashboard">
+                        <NavDropdown.Item>Dashboard</NavDropdown.Item>
+                      </LinkContainer>
+
                       <LinkContainer
                         to={'/seller/profile/:id'.replace(':id', userInfo._id)}
                       >
@@ -196,7 +200,7 @@ function App() {
           <Container className="mt-3">
             {/* margin top 3 rem */}
             <Routes>
-              <Route path="/product/:slug" element={<ProductSceen />} />
+              <Route path="/product/:id" element={<ProductSceen />} />
               <Route path="/cart" element={<CartScreen />} />
               <Route path="/search" element={<SearchScreen />} />
               <Route path="/signin" element={<SigninScreen />} />
@@ -216,7 +220,7 @@ function App() {
                 path="/order/:id"
                 element={
                   <ProtectedRoute>
-                    <OrderScreen1 />
+                    <OrderScreen />
                   </ProtectedRoute>
                 }
               ></Route>
@@ -286,6 +290,14 @@ function App() {
               ></Route>
 
               {/* seller */}
+              <Route
+                path="/seller/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardScreen />
+                  </ProtectedRoute>
+                }
+              ></Route>
 
               <Route
                 path="/seller/products"

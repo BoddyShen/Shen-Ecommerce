@@ -89,6 +89,10 @@ main {
   background-color: #100901;
   transition: 0.5s;
 }
+
+.product-height {
+  height: 400px;
+}
 .card-height {
   height: 200px;
   object-fit: cover;

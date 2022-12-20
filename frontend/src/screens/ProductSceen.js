@@ -46,7 +46,7 @@ function ProductScreen() {
 
   const navigate = useNavigate();
   const params = useParams();
-  const { slug } = params;
+  const { id } = params;
 
   const [{ loading, error, product, loadingCreateReview }, dispatch] =
     useReducer(reducer, {
@@ -58,7 +58,7 @@ function ProductScreen() {
     const fetchData = async () => {
       dispatch({ type: 'FETCH_REQUEST' });
       try {
-        const result = await axios.get(`/api/products/slug/${slug}`);
+        const result = await axios.get(`/api/products/${id}`);
 
         //product = result.data
         dispatch({ type: 'FETCH_SUCCESS', payload: result.data });
@@ -67,7 +67,7 @@ function ProductScreen() {
       }
     };
     fetchData();
-  }, [slug]);
+  }, [id]);
 
   const { state, dispatch: ctxDispatch } = useContext(Store);
   const { cart, userInfo } = state;
@@ -262,7 +262,7 @@ function ProductScreen() {
           ) : (
             <MessageBox>
               Please{' '}
-              <Link to={`/signin?redirect=/product/${product.slug}`}>
+              <Link to={`/signin?redirect=/product/${product._id}`}>
                 Sign In
               </Link>{' '}
               to write a review

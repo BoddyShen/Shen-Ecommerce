@@ -3,14 +3,14 @@ import expressAsyncHandler from 'express-async-handler';
 import Order from '../models/orderModel.js';
 import User from '../models/userModel.js';
 import Product from '../models/productModel.js';
-import { isAuth, isAdmin, isAdminOrSeller } from '../utils.js';
+import { isAuth, isAdmin } from '../utils.js';
+import mongoose from 'mongoose';
 
 const orderRouter = express.Router();
 
 orderRouter.get(
   '/',
   isAuth,
-  isAdminOrSeller,
   expressAsyncHandler(async (req, res) => {
     const { query } = req;
     let sellerMode = query.seller;
@@ -27,8 +27,27 @@ orderRouter.get(
 
 orderRouter.post(
   '/',
-  isAuth, //驗證並拿到user_id
+  isAuth,
   expressAsyncHandler(async (req, res) => {
+    for (let i = 0; i < req.body.orderItems.length; i++) {
+      const existedProduct = await Product.findById(req.body.orderItems[i]._id);
+
+      if (
+        !existedProduct ||
+        existedProduct.countInStock < req.body.orderItems[i].quantity
+      ) {
+        res.status(404).send({ message: 'Product Not Found or Out of stock.' });
+        return;
+      }
+    }
+    for (let i = 0; i < req.body.orderItems.length; i++) {
+      const existedProduct = await Product.findById(req.body.orderItems[i]._id);
+
+      existedProduct.countInStock =
+        existedProduct.countInStock - req.body.orderItems[i].quantity;
+      await existedProduct.save();
+    }
+
     const newOrder = new Order({
       orderItems: req.body.orderItems.map((x) => ({ ...x, product: x._id })),
       shippingAddress: req.body.shippingAddress,
@@ -39,7 +58,6 @@ orderRouter.post(
       totalPrice: req.body.totalPrice,
       buyer: req.user._id,
       seller: req.body.seller,
-      sellerID: req.body.seller,
     });
     const order = await newOrder.save();
     res.status(201).send({ message: 'New Order Created', order });
@@ -68,6 +86,8 @@ orderRouter.get(
         },
       },
     ]);
+    console.log(users);
+
     const dailyOrders = await Order.aggregate([
       {
         $group: {
@@ -79,6 +99,65 @@ orderRouter.get(
       { $sort: { _id: 1 } },
     ]);
     const productCategories = await Product.aggregate([
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+    res.send({ users, orders, dailyOrders, productCategories });
+  })
+);
+
+orderRouter.get(
+  '/seller/summary',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    // console.log(req.user._id);
+    const orders = await Order.aggregate([
+      {
+        $match: { seller: mongoose.Types.ObjectId(req.user._id) },
+      },
+      {
+        $group: {
+          _id: null,
+          numOrders: { $sum: 1 },
+          totalSales: { $sum: '$totalPrice' },
+        },
+      },
+    ]);
+
+    const userNum = await Order.aggregate([
+      {
+        $match: { seller: mongoose.Types.ObjectId(req.user._id) },
+      },
+      {
+        $group: {
+          _id: '$buyer',
+        },
+      },
+    ]);
+
+    const users = [{ numUsers: userNum.length }];
+
+    const dailyOrders = await Order.aggregate([
+      {
+        $match: { seller: mongoose.Types.ObjectId(req.user._id) },
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          orders: { $sum: 1 },
+          sales: { $sum: '$totalPrice' },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+    const productCategories = await Product.aggregate([
+      {
+        $match: { sellerID: mongoose.Types.ObjectId(req.user._id) },
+      },
       {
         $group: {
           _id: '$category',
@@ -118,10 +197,13 @@ orderRouter.get(
 orderRouter.put(
   '/:id/deliver',
   isAuth,
-  isAdminOrSeller,
   expressAsyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
-    if (order && (order.sellerID === req.user._id || req.user.isAdmin)) {
+
+    if (
+      order &&
+      (order.seller._id.toHexString() === req.user._id || req.user.isAdmin)
+    ) {
       order.isDelivered = true;
       order.deliveredAt = Date.now();
       await order.save();
@@ -157,10 +239,12 @@ orderRouter.put(
 orderRouter.delete(
   '/:id',
   isAuth,
-  isAdminOrSeller,
   expressAsyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
-    if (order && (order.sellerID === req.user._id || req.user.isAdmin)) {
+    if (
+      order &&
+      (order.seller._id.toHexString() === req.user._id || req.user.isAdmin)
+    ) {
       await order.remove();
       res.send({ message: 'Order Deleted' });
     } else {

@@ -32,7 +32,8 @@ function reducer(state, action) {
       const existItem = state.cart.cartItems.find(
         (item) => item._id === newItem._id
       );
-      //如果newItem在cart裡(existItem存在)，就map所有item，是新的就更新成newItem，不是的其他item保持原樣
+      //如果newItem在cart裡(existItem存在)，就map所有item，是新的就更新成newItem，
+      //不是的其他item保持原樣
       //如果不在，那就展開加入newItem
       const cartItems = existItem
         ? state.cart.cartItems.map((item) =>

@@ -2,7 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import expressAsyncHandler from 'express-async-handler';
 import User from '../models/userModel.js';
-import { generateToken, isAdmin, isAdminOrSeller, isAuth } from '../utils.js';
+import { generateToken, isAdmin, isAuth } from '../utils.js';
 
 const userRouter = express.Router();
 
@@ -47,9 +47,13 @@ userRouter.put(
       if (req.body.password) {
         user.password = bcrypt.hashSync(req.body.password, 8);
       }
-      user.seller.description =
-        req.body.seller.description || user.seller.description;
-      user.seller.logo = req.body.seller.logo || user.seller.logo;
+
+      user.seller.description = req.body.seller
+        ? req.body.seller.description || user.seller.description
+        : user.seller.description;
+      user.seller.logo = req.body.seller
+        ? req.body.seller.logo || user.seller.logo
+        : user.seller.logo;
 
       const updatedUser = await user.save();
       res.send({
