@@ -8,4 +8,4 @@ For the back-end, I used Express to build a RESTful API that allows the front-en
 
 Overall, it was a challenging but rewarding project that allowed me to apply my knowledge of the MERN stack and learn new skills along the way. We welcome users to create an account and start using the service.
 
-Please visit this project [here](https://boddy-shopping-cart.onrender.com/)
+
